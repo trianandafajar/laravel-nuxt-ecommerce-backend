@@ -5,40 +5,48 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Models\Invoice;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\InvoiceResource;
+use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the invoices for the authenticated customer.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $invoices = Invoice::latest()->when(request()->q, function($invoices) {
-            $invoices = $invoices->where('invoice', 'like', '%'. request()->q . '%');
-        })->where('customer_id', auth()->guard('api_customer')->user()->id)->paginate(5);
+        $customer = auth()->guard('api_customer')->user();
 
-        //return with Api Resource
-        return new InvoiceResource(true, 'List Data Invoices : '.auth()->guard('api_customer')->user()->name.'', $invoices);
+        $invoices = Invoice::latest()
+            ->when($request->q, function ($query) use ($request) {
+                return $query->where('invoice', 'like', '%' . $request->q . '%');
+            })
+            ->where('customer_id', $customer->id)
+            ->paginate(5);
+
+        return new InvoiceResource(true, 'List Data Invoices : ' . $customer->name, $invoices);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified invoice details.
      *
-     * @param  int  $id
+     * @param  string  $snap_token
      * @return \Illuminate\Http\Response
      */
     public function show($snap_token)
     {
-        $invoice = Invoice::with('orders.product', 'customer', 'city', 'province')->where('customer_id', auth()->guard('api_customer')->user()->id)->where('snap_token', $snap_token)->first();
-        
-        if($invoice) {
-            //return success with Api Resource
-            return new InvoiceResource(true, 'Detail Data Invoice : '.$invoice->snap_token.'', $invoice);
+        $customer = auth()->guard('api_customer')->user();
+
+        $invoice = Invoice::with(['orders.product', 'customer', 'city', 'province'])
+            ->where('customer_id', $customer->id)
+            ->where('snap_token', $snap_token)
+            ->first();
+
+        if ($invoice) {
+            return new InvoiceResource(true, 'Detail Data Invoice : ' . $invoice->snap_token, $invoice);
         }
 
-        //return failed with Api Resource
-        return new InvoiceResource(false, 'Detail Data Invoice Tidak DItemukan!', null);
+        return new InvoiceResource(false, 'Detail Data Invoice Tidak Ditemukan!', null);
     }
 }

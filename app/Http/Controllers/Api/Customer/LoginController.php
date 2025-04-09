@@ -3,106 +3,105 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use Illuminate\Http\Request;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class LoginController extends Controller
-{    
+{
     /**
-     * index
-     *
-     * @param  mixed $request
-     * @return void
+     * Handle customer login request and return token if credentials are valid.
      */
     public function index(Request $request)
     {
-        //set validasi
         $validator = Validator::make($request->all(), [
             'email'    => 'required|email',
             'password' => 'required',
         ]);
-        
-        //response error validasi
+
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        //get "email" dan "password" dari input
-        $credentials = $request->only('email', 'password');
-
-        //check jika "email" dan "password" tidak sesuai
-        if(!$token = auth()->guard('api_customer')->attempt($credentials)) {
-
-            //response login "failed"
             return response()->json([
                 'success' => false,
-                'message' => 'Email or Password is incorrect'
-            ], 401);
-
+                'errors'  => $validator->errors(),
+            ], 422);
         }
-        
-        //response login "success" dengan generate "Token"
+
+        $credentials = $request->only('email', 'password');
+
+        if (!$token = auth()->guard('api_customer')->attempt($credentials)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email or Password is incorrect',
+            ], 401);
+        }
+
         return response()->json([
             'success' => true,
-            'user'    => auth()->guard('api_customer')->user(),  
-            'token'   => $token   
+            'user'    => auth()->guard('api_customer')->user(),
+            'token'   => $token,
         ], 200);
     }
 
     /**
-     * getUser
-     *
-     * @return void
+     * Get authenticated user data.
      */
     public function getUser()
     {
-        //response data "user" yang sedang login
         return response()->json([
             'success' => true,
-            'user'    => auth()->guard('api_customer')->user()
+            'user'    => auth()->guard('api_customer')->user(),
         ], 200);
     }
-    
+
     /**
-     * refreshToken
-     *
-     * @param  mixed $request
-     * @return void
+     * Refresh JWT token and return a new one.
      */
     public function refreshToken(Request $request)
     {
-        //refresh "token"
-        $refreshToken = JWTAuth::refresh(JWTAuth::getToken());
+        try {
+            $token = JWTAuth::getToken();
 
-        //set user dengan "token" baru
-        $user = JWTAuth::setToken($refreshToken)->toUser();
+            if (!$token) {
+                return response()->json(['success' => false, 'message' => 'Token not provided'], 401);
+            }
 
-        //set header "Authorization" dengan type Bearer + "token" baru
-        $request->headers->set('Authorization','Bearer '.$refreshToken);
+            $refreshToken = JWTAuth::refresh($token);
+            $user = JWTAuth::setToken($refreshToken)->toUser();
 
-        //response data "user" dengan "token" baru
-        return response()->json([
-            'success' => true,
-            'user'    => $user,
-            'token'   => $refreshToken,  
-        ], 200);
+            $request->headers->set('Authorization', 'Bearer ' . $refreshToken);
+
+            return response()->json([
+                'success' => true,
+                'user'    => $user,
+                'token'   => $refreshToken,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to refresh token',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
-    
+
     /**
-     * logout
-     *
-     * @return void
+     * Logout the user by invalidating the token.
      */
     public function logout()
     {
-        //remove "token" JWT
-        $removeToken = JWTAuth::invalidate(JWTAuth::getToken());
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
 
-        //response "success" logout
-        return response()->json([
-            'success' => true,
-        ], 200);
-
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout successful',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logout failed',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 }

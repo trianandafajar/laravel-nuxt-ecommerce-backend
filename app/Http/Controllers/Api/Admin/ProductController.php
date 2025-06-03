@@ -20,10 +20,10 @@ class ProductController extends Controller
     public function index()
     {
         //get products
-        $products = Product::with('category')->when(request()->q, function($products) {
-            $products = $products->where('title', 'like', '%'. request()->q . '%');
+        $products = Product::with('category')->when(request()->q, function ($products) {
+            $products = $products->where('title', 'like', '%' . request()->q . '%');
         })->latest()->paginate(5);
-        
+
         //return with Api Resource
         return new ProductResource(true, 'List Data Products', $products);
     }
@@ -69,7 +69,7 @@ class ProductController extends Controller
             'discount'      => $request->discount
         ]);
 
-        if($product) {
+        if ($product) {
             //return success with Api Resource
             return new ProductResource(true, 'Data Product Berhasil Disimpan!', $product);
         }
@@ -87,8 +87,8 @@ class ProductController extends Controller
     public function show($id)
     {
         $product = Product::whereId($id)->first();
-        
-        if($product) {
+
+        if ($product) {
             //return success with Api Resource
             return new ProductResource(true, 'Detail Data Product!', $product);
         }
@@ -107,7 +107,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validator = Validator::make($request->all(), [
-            'title'         => 'required|unique:products,title,'.$product->id,
+            'title'         => 'required|unique:products,title,' . $product->id,
             'category_id'   => 'required',
             'description'   => 'required',
             'weight'        => 'required',
@@ -124,8 +124,8 @@ class ProductController extends Controller
         if ($request->file('image')) {
 
             //remove old image
-            Storage::disk('local')->delete('public/products/'.basename($product->image));
-        
+            Storage::disk('local')->delete('public/products/' . basename($product->image));
+
             //upload new image
             $image = $request->file('image');
             $image->storeAs('public/products', $image->hashName());
@@ -143,7 +143,6 @@ class ProductController extends Controller
                 'stock'         => $request->stock,
                 'discount'      => $request->discount
             ]);
-
         }
 
         //update product without image
@@ -159,7 +158,7 @@ class ProductController extends Controller
             'discount'      => $request->discount
         ]);
 
-        if($product) {
+        if ($product) {
             //return success with Api Resource
             return new ProductResource(true, 'Data Product Berhasil Diupdate!', $product);
         }
@@ -177,9 +176,9 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         //remove image
-        Storage::disk('local')->delete('public/products/'.basename($product->image));
+        Storage::disk('local')->delete('public/products/' . basename($product->image));
 
-        if($product->delete()) {
+        if ($product->delete()) {
             //return success with Api Resource
             return new ProductResource(true, 'Data Product Berhasil Dihapus!', null);
         }

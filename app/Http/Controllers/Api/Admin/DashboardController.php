@@ -35,20 +35,20 @@ class DashboardController extends Controller
             ->groupBy('month')
             ->orderByRaw('month ASC')
             ->get();
-        if(count($transactions)) {
+        if (count($transactions)) {
             foreach ($transactions as $result) {
                 $month_name[]    = $result->month_name;
                 $grand_total[]   = (int)$result->grand_total;
             }
-        }else {
+        } else {
             $month_name[]   = "";
             $grand_total[]  = "";
-        } 
+        }
 
         //response 
         return response()->json([
             'success' => true,
-            'message' => 'Statistik Data',  
+            'message' => 'Statistik Data',
             'data'    => [
                 'count' => [
                     'pending'   => $pending,
@@ -60,7 +60,7 @@ class DashboardController extends Controller
                     'month_name'    => $month_name,
                     'grand_total'   => $grand_total
                 ]
-            ]  
+            ]
         ], 200);
     }
 }

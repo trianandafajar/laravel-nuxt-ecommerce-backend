@@ -9,7 +9,7 @@ use App\Http\Resources\ReviewResource;
 use Illuminate\Support\Facades\Validator;
 
 class ReviewController extends Controller
-{    
+{
     /**
      * Simpan review dari customer.
      *
@@ -35,8 +35,8 @@ class ReviewController extends Controller
 
         // Cek apakah sudah pernah mereview produk dalam order ini
         $check_review = Review::where('order_id', $request->order_id)
-                              ->where('product_id', $request->product_id)
-                              ->first();
+            ->where('product_id', $request->product_id)
+            ->first();
 
         if ($check_review) {
             return response()->json([

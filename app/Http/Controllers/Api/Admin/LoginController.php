@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
-{    
+{
     /**
      * index
      *
@@ -22,7 +22,7 @@ class LoginController extends Controller
             'email'    => 'required|email',
             'password' => 'required',
         ]);
-        
+
         //response error validasi
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
@@ -32,24 +32,23 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
 
         //check jika "email" dan "password" tidak sesuai
-        if(!$token = auth()->guard('api_admin')->attempt($credentials)) {
+        if (!$token = auth()->guard('api_admin')->attempt($credentials)) {
 
             //response login "failed"
             return response()->json([
                 'success' => false,
                 'message' => 'Email or Password is incorrect'
             ], 401);
-
         }
-        
+
         //response login "success" dengan generate "Token"
         return response()->json([
             'success' => true,
-            'user'    => auth()->guard('api_admin')->user(),  
-            'token'   => $token   
+            'user'    => auth()->guard('api_admin')->user(),
+            'token'   => $token
         ], 200);
     }
-    
+
     /**
      * getUser
      *
@@ -63,7 +62,7 @@ class LoginController extends Controller
             'user'    => auth()->guard('api_admin')->user()
         ], 200);
     }
-    
+
     /**
      * refreshToken
      *
@@ -79,16 +78,16 @@ class LoginController extends Controller
         $user = JWTAuth::setToken($refreshToken)->toUser();
 
         //set header "Authorization" dengan type Bearer + "token" baru
-        $request->headers->set('Authorization','Bearer '.$refreshToken);
+        $request->headers->set('Authorization', 'Bearer ' . $refreshToken);
 
         //response data "user" dengan "token" baru
         return response()->json([
             'success' => true,
             'user'    => $user,
-            'token'   => $refreshToken,  
+            'token'   => $refreshToken,
         ], 200);
     }
-    
+
     /**
      * logout
      *
@@ -103,6 +102,5 @@ class LoginController extends Controller
         return response()->json([
             'success' => true,
         ], 200);
-
     }
 }

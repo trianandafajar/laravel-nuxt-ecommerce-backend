@@ -20,7 +20,7 @@ class SliderController extends Controller
     {
         //get sliders
         $sliders = Slider::latest()->paginate(5);
-        
+
         //return with Api Resource
         return new SliderResource(true, 'List Data Sliders', $sliders);
     }
@@ -47,11 +47,11 @@ class SliderController extends Controller
 
         //create slider
         $slider = Slider::create([
-            'image'=> $image->hashName(),
+            'image' => $image->hashName(),
             'link' => $request->link,
         ]);
 
-        if($slider) {
+        if ($slider) {
             //return success with Api Resource
             return new SliderResource(true, 'Data Slider Berhasil Disimpan!', $slider);
         }
@@ -60,7 +60,7 @@ class SliderController extends Controller
         return new SliderResource(false, 'Data Slider Gagal Disimpan!', null);
     }
 
-        /**
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
@@ -69,9 +69,9 @@ class SliderController extends Controller
     public function destroy(Slider $slider)
     {
         //remove image
-        Storage::disk('local')->delete('public/sliders/'.basename($slider->image));
+        Storage::disk('local')->delete('public/sliders/' . basename($slider->image));
 
-        if($slider->delete()) {
+        if ($slider->delete()) {
             //return success with Api Resource
             return new SliderResource(true, 'Data Slider Berhasil Dihapus!', null);
         }
